@@ -55,6 +55,11 @@ def main(cfg: DictConfig):
     
     print(f'percantage of white: {per_white}\ntotal: {totalpixels}\nwhite: {p}\n')
     
+    # excluding all the pixels with colour close to white if they are more than 10% in the image
+    # исключая все пиксели с цветом, близким к белому, если их на изображении больше 10%
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+    
 
 if __name__ == "__main__":
     main()
