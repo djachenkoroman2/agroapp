@@ -230,6 +230,8 @@ def main(cfg: DictConfig):
     print("\n*To terminate press and hold (q)*")
 
     # cv2.imshow('orig',original)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_16.jpg"), original)
+    show(mask,'step 16 orig')
 
 
 if __name__ == "__main__":
