@@ -39,7 +39,7 @@ def main(cfg: DictConfig):
     original = img.copy()
     neworiginal = img.copy()
     
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_1.jpg"), img)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_01.jpg"), img)
     show(img,'original step 1')
     
 
@@ -75,12 +75,12 @@ def main(cfg: DictConfig):
                 R = img[i][j][2]
                 if (B > 110 and G > 110 and R > 110):
                     img[i][j] = [200,200,200]
-        cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_2.jpg"), img)
+        cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_02.jpg"), img)
         show(img,'step 2')
 
     #Guassian blur
     blur1 = cv2.GaussianBlur(img,(3,3),1)
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_3.jpg"), blur1)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_03.jpg"), blur1)
     show(blur1,'step 3')
     
     #mean-shift algo
@@ -89,7 +89,7 @@ def main(cfg: DictConfig):
 
     img = cv2.pyrMeanShiftFiltering(blur1, 20, 30, newimg, 0, criteria)
     
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_4.jpg"), img)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_04.jpg"), img)
     show(img,'step 4 means shift image')
 
     #Guassian blur
@@ -98,7 +98,7 @@ def main(cfg: DictConfig):
     #Canny-edge detection
     canny = cv2.Canny(blur, 160, 290)
     
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_5.jpg"), canny)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_05.jpg"), canny)
     show(canny,'step 5 canny')
 
     canny = cv2.cvtColor(canny,cv2.COLOR_GRAY2BGR)
@@ -118,8 +118,8 @@ def main(cfg: DictConfig):
     Tarea = cv2.contourArea(contours[maxid])
     cv2.drawContours(neworiginal,contours[maxid],-1,(0,0,255))
     
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_6.jpg"), neworiginal)
-    show(canny,'step 6 Contour')
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_06.jpg"), neworiginal)
+    show(neworiginal,'step 6 Contour')
 
     #Creating rectangular roi around contour
     height, width, _ = canny.shape
@@ -144,12 +144,12 @@ def main(cfg: DictConfig):
 
 
     # cv2.imshow('ROI', frame)
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_7.jpg"), frame)
-    show(canny,'step 7 ROI')
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_07.jpg"), frame)
+    show(frame,'step 7 ROI')
     
     # cv2.imshow('rectangle ROI', roi)
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_8.jpg"), roi)
-    show(canny,'step 8 rectangle ROI')
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_08.jpg"), roi)
+    show(roi,'step 8 rectangle ROI')
     
     img = roi
 
@@ -158,37 +158,79 @@ def main(cfg: DictConfig):
     imghls = cv2.cvtColor(roi, cv2.COLOR_BGR2HLS)
     
     # cv2.imshow('HLS', imghls)
-    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_9.jpg"), imghls)
-    show(canny,'step 9 HLS')
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_09.jpg"), imghls)
+    show(imghls,'step 9 HLS')
    
-'''    
+  
     imghls[np.where((imghls==[30,200,2]).all(axis=2))] = [0,200,0]
-    cv2.imshow('new HLS', imghls)
+    # cv2.imshow('new HLS', imghls)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_10.jpg"), imghls)
+    show(imghls,'step 10 new HLS')
 
     #Only hue channel
     huehls = imghls[:,:,0]
-    cv2.imshow('img_hue hls',huehls)
+    # cv2.imshow('img_hue hls',huehls)
     #ret, huehls = cv2.threshold(huehls,2,255,cv2.THRESH_BINARY)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_11.jpg"), huehls)
+    show(huehls,'step 11 new HLS')
 
     huehls[np.where(huehls==[0])] = [35]
-    cv2.imshow('img_hue with my mask',huehls)
-
+    # cv2.imshow('img_hue with my mask',huehls)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_12.jpg"), huehls)
+    show(huehls,'step 12 img_hue with my mask')
 
     #Thresholding on hue image
     ret, thresh = cv2.threshold(huehls,28,255,cv2.THRESH_BINARY_INV)
-    cv2.imshow('thresh', thresh)
-
-
+    # cv2.imshow('thresh', thresh)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_13.jpg"), thresh)
+    show(thresh,'step 13 thresh')
+    
     #Masking thresholded image from original image
     mask = cv2.bitwise_and(originalroi,originalroi,mask = thresh)
-    cv2.imshow('masked out img',mask)
-
-
+    # cv2.imshow('masked out img',mask)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_14.jpg"), mask)
+    show(mask,'step 14 masked out img')
+    
     #Finding contours for all infected regions
     contours,heirarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
     Infarea = 0
-'''
+
+    for x in range(len(contours)):
+        cv2.drawContours(originalroi,contours[x],-1,(0,0,255))
+        # cv2.imshow('Contour masked',originalroi)
+        cv2.imwrite(os.path.join(f"{cfg.results_folder}",f"output_step_15_{x}.jpg"), originalroi)
+        show(originalroi,f'Contour masked {x}',pause=0.5)
+        
+        #Calculating area of infected region
+        Infarea += cv2.contourArea(contours[x])
+
+    if Infarea > Tarea:
+        Tarea = img.shape[0]*img.shape[1]
+
+    print ('_________________________________________\n Perimeter: %.2f' %(perimeter) 
+        + '\n_________________________________________')
+
+    print ('_________________________________________\n Total area: %.2f' %(Tarea) 
+        + '\n_________________________________________')
+
+    #Finding the percentage of infection in the leaf
+    print ('_________________________________________\n Infected area: %.2f' %(Infarea) 
+        + '\n_________________________________________')
+
+    try:
+        per = 100 * Infarea/Tarea
+    except ZeroDivisionError:
+        per = 0
+
+    print ('_________________________________________\n Percentage of infection region: %.2f' %(per) 
+        + '\n_________________________________________')
+
+
+    print("\n*To terminate press and hold (q)*")
+
+    # cv2.imshow('orig',original)
+
 
 if __name__ == "__main__":
     main()
