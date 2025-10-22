@@ -19,6 +19,13 @@ def show(img,title,pause=2):
 
 @hydra.main(config_path=".", config_name="config", version_base=None)
 def main(cfg: DictConfig):
+    
+    if os.path.isdir({cfg.results_folder}):
+        print(f"Каталог {cfg.results_folder} существует")
+    else:
+        print(f"Каталог {cfg.results_folder} не существует")
+        exit(0)
+        
     # Reading the image by parsing the argument
     
     if os.path.isfile(cfg.img_filename):
@@ -30,8 +37,11 @@ def main(cfg: DictConfig):
     img = cv2.imread(cfg.img_filename)
     img = cv2.resize(img ,((int)(img.shape[1]/5),(int)(img.shape[0]/5)))
     original = img.copy()
-    neworiginal = img.copy() 
-    show(img,'original')
+    neworiginal = img.copy()
+    
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_1.jpg"), img)
+    show(img,'original step 1')
+    
 
     # Calculating number of pixels with shade of white(p) to check if exclusion of these pixels is required or not 
     # (if more than a fixed %) in order to differentiate the white background or white patches in image 
@@ -57,8 +67,12 @@ def main(cfg: DictConfig):
     
     # excluding all the pixels with colour close to white if they are more than 10% in the image
     # исключая все пиксели с цветом, близким к белому, если их на изображении больше 10%
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
+    if per_white > 10:
+        for i in range(img.shape[0]):
+            for j in range(img.shape[1]):
+                img[i][j] = [200,200,200]
+        cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_2.jpg"), img)
+        show(img,'step 2')
     
 
 if __name__ == "__main__":
