@@ -20,12 +20,19 @@ def show(img,title,pause=2):
 @hydra.main(config_path=".", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     
-    if os.path.isdir(f"{cfg.results_folder}"):
-        print(f"Каталог {cfg.results_folder} существует")
-    else:
-        print(f"Каталог {cfg.results_folder} не существует")
+    try:
+        os.makedirs(f"{cfg.results_folder}", exist_ok=True)
+        print(f"Каталог {cfg.results_folder} успешно создан или уже существует")
+    except PermissionError:
+        print(f"Ошибка: Нет прав для создания каталога {cfg.results_folder}")
         exit(0)
-        
+    except OSError as e:
+        print(f"Ошибка создания каталога {cfg.results_folder}: {e}")
+        exit(0)
+    except Exception as e:
+        print(f"Неожиданная ошибка: {e}")
+        exit(0)
+         
     # Reading the image by parsing the argument
     
     if os.path.isfile(cfg.img_filename):
@@ -231,7 +238,69 @@ def main(cfg: DictConfig):
 
     # cv2.imshow('orig',original)
     cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_16.jpg"), original)
-    show(mask,'step 16 orig')
+    show(original,'step 16 orig')
+
+'''
+"""****************************************update dataset*******************************************"""
+#Updating a dataset file to maintain log of the leaf images identified. 
+
+print("\nDo you want to run the classifier(Y/N):")
+n = cv2.waitKey(0) & 0xFF
+
+if n == ord('q' or 'Q'):
+	endprogram()
+
+
+#import csv file library 
+import csv
+
+directory = 'datasetlog' 
+filename = directory+'/Datasetunlabelledlog.csv' 
+imgid = "/".join(text.split('/')[-2:])
+
+while True:	
+	if  n == ord('y'or'Y'):
+		
+		fieldnames = ['fold num', 'imgid', 'feature1', 'feature2', 'feature3']
+		
+		print ('Appending to ' + str(filename)+ '...')
+		
+		
+		try:
+			log = pd.read_csv(filename)
+			logfn = int(log.tail(1)['fold num'])
+			foldnum = (logfn+1)%10
+			L = [str(foldnum), imgid, str(Tarea), str(Infarea), str(perimeter)]
+			my_df = pd.DataFrame([L])
+			my_df.to_csv(filename, mode='a', index=False, header=False)			
+			print ('\nFile ' + str(filename)+ ' updated!' )
+				
+
+		except IOError:
+			if directory not in os.listdir():
+				os.system('mkdir ' + directory)
+
+			foldnum = 0
+			L = [str(foldnum), imgid, str(Tarea), str(Infarea), str(perimeter)]
+
+			my_df = pd.DataFrame([fieldnames, L])
+			my_df.to_csv(filename, index=False, header=False)
+			print ('\nFile ' + str(filename)+ ' updated!' )
+			
+		finally:
+			import classifier
+			endprogram()
+
+			
+	elif n == ord('n' or 'N') :
+		print ('File not updated! \nSuccessfully terminated!')
+		break
+	
+	else:
+		print ('invalid input!')
+		break
+
+'''
 
 
 if __name__ == "__main__":
