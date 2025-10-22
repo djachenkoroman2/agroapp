@@ -20,7 +20,7 @@ def show(img,title,pause=2):
 @hydra.main(config_path=".", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     
-    if os.path.isdir({cfg.results_folder}):
+    if os.path.isdir(f"{cfg.results_folder}"):
         print(f"Каталог {cfg.results_folder} существует")
     else:
         print(f"Каталог {cfg.results_folder} не существует")
@@ -70,9 +70,18 @@ def main(cfg: DictConfig):
     if per_white > 10:
         for i in range(img.shape[0]):
             for j in range(img.shape[1]):
-                img[i][j] = [200,200,200]
+                B = img[i][j][0]
+                G = img[i][j][1]
+                R = img[i][j][2]
+                if (B > 110 and G > 110 and R > 110):
+                    img[i][j] = [200,200,200]
         cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_2.jpg"), img)
         show(img,'step 2')
+
+    #Guassian blur
+    blur1 = cv2.GaussianBlur(img,(3,3),1)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_3.jpg"), blur1)
+    show(blur1,'step 3')
     
 
 if __name__ == "__main__":
