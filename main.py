@@ -83,6 +83,112 @@ def main(cfg: DictConfig):
     cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_3.jpg"), blur1)
     show(blur1,'step 3')
     
+    #mean-shift algo
+    newimg = np.zeros((img.shape[0], img.shape[1],3),np.uint8)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER , 10 ,1.0)
+
+    img = cv2.pyrMeanShiftFiltering(blur1, 20, 30, newimg, 0, criteria)
+    
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_4.jpg"), img)
+    show(img,'step 4 means shift image')
+
+    #Guassian blur
+    blur = cv2.GaussianBlur(img,(11,11),1)
+
+    #Canny-edge detection
+    canny = cv2.Canny(blur, 160, 290)
+    
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_5.jpg"), canny)
+    show(canny,'step 5 canny')
+
+    canny = cv2.cvtColor(canny,cv2.COLOR_GRAY2BGR)
+    
+    #contour to find leafs
+    bordered = cv2.cvtColor(canny,cv2.COLOR_BGR2GRAY)
+    contours,hierarchy = cv2.findContours(bordered, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    
+    maxC = 0
+    for x in range(len(contours)):													#if take max or one less than max then will not work in
+        if len(contours[x]) > maxC:													# pictures with zoomed leaf images
+            maxC = len(contours[x])
+            maxid = x
+
+    perimeter = cv2.arcLength(contours[maxid],True)
+    #print perimeter
+    Tarea = cv2.contourArea(contours[maxid])
+    cv2.drawContours(neworiginal,contours[maxid],-1,(0,0,255))
+    
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_6.jpg"), neworiginal)
+    show(canny,'step 6 Contour')
+
+    #Creating rectangular roi around contour
+    height, width, _ = canny.shape
+    min_x, min_y = width, height
+    max_x = max_y = 0
+    frame = canny.copy()
+
+    # computes the bounding box for the contour, and draws it on the frame,
+    for contour, hier in zip(contours, hierarchy):
+        (x,y,w,h) = cv2.boundingRect(contours[maxid])
+        min_x, max_x = min(x, min_x), max(x+w, max_x)
+        min_y, max_y = min(y, min_y), max(y+h, max_y)
+        if w > 80 and h > 80:
+            #cv2.rectangle(frame, (x,y), (x+w,y+h), (255, 0, 0), 2)   #we do not draw the rectangle as it interferes with contour later on
+            roi = img[y:y+h , x:x+w]
+            originalroi = original[y:y+h , x:x+w]
+            
+    if (max_x - min_x > 0 and max_y - min_y > 0):
+        roi = img[min_y:max_y , min_x:max_x]	
+        originalroi = original[min_y:max_y , min_x:max_x]
+        #cv2.rectangle(frame, (min_x, min_y), (max_x, max_y), (255, 0, 0), 2)   #we do not draw the rectangle as it interferes with contour
+
+
+    # cv2.imshow('ROI', frame)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_7.jpg"), frame)
+    show(canny,'step 7 ROI')
+    
+    # cv2.imshow('rectangle ROI', roi)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_8.jpg"), roi)
+    show(canny,'step 8 rectangle ROI')
+    
+    img = roi
+
+    #Changing colour-space
+    #imghsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    imghls = cv2.cvtColor(roi, cv2.COLOR_BGR2HLS)
+    
+    # cv2.imshow('HLS', imghls)
+    cv2.imwrite(os.path.join(f"{cfg.results_folder}","output_step_9.jpg"), imghls)
+    show(canny,'step 9 HLS')
+   
+'''    
+    imghls[np.where((imghls==[30,200,2]).all(axis=2))] = [0,200,0]
+    cv2.imshow('new HLS', imghls)
+
+    #Only hue channel
+    huehls = imghls[:,:,0]
+    cv2.imshow('img_hue hls',huehls)
+    #ret, huehls = cv2.threshold(huehls,2,255,cv2.THRESH_BINARY)
+
+    huehls[np.where(huehls==[0])] = [35]
+    cv2.imshow('img_hue with my mask',huehls)
+
+
+    #Thresholding on hue image
+    ret, thresh = cv2.threshold(huehls,28,255,cv2.THRESH_BINARY_INV)
+    cv2.imshow('thresh', thresh)
+
+
+    #Masking thresholded image from original image
+    mask = cv2.bitwise_and(originalroi,originalroi,mask = thresh)
+    cv2.imshow('masked out img',mask)
+
+
+    #Finding contours for all infected regions
+    contours,heirarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+    Infarea = 0
+'''
 
 if __name__ == "__main__":
     main()
